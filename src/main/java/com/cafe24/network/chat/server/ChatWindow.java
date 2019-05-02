@@ -1,3 +1,8 @@
+/*
+ * 채팅창 객체로서 유저에게 채팅 메시지를 입력받고 보여주는 역할
+ * ChatClientApp에서 소켓, 닉네임, PrintWriter를 받아온다.
+ * 메시지 받는 스레드는 새로 하나 생성해서 입력 중에도 받을 수 있게 구현했다.
+ */
 package com.cafe24.network.chat.server;
 import java.awt.BorderLayout;
 import java.awt.Button;
@@ -86,15 +91,18 @@ public class ChatWindow {
 		frame.pack();
 	}
 	
+	// 채팅창 종료
 	private void finish() {
 		//socket 정리
 		System.exit(0);
 	}
 	
+	// 채팅창 메시지 출력
 	private void updateTextArea(String message) {
 		textArea.append(message+"\r\n");
 	}
 	
+	// 메시지 전송
 	private void sendMessage() {
 		String message = textField.getText();
 		
@@ -102,6 +110,8 @@ public class ChatWindow {
 		textField.requestFocus();
 		
 		// 메시지 입력에 따른 다른 동작
+		// quit을 입력할 경우 서버로 메시지 전달 후 채팅종료
+		// 그 이외의 메시지는 서버로 메시지 전달
 		if ("quit".equals(message)) {
 			pr.println("quit:" + message);
 			pr.flush();
@@ -116,7 +126,7 @@ public class ChatWindow {
 	
 	public void receiveMsg() {
 		
-		// 7-1.메시지 받기(데이터 수신 스레드)
+		// 8-1.메시지 받기(데이터 수신 스레드)
 		new Thread(()->{
 			
 			try {
@@ -128,7 +138,7 @@ public class ChatWindow {
 						break;
 					}
 					
-					// 7-2. 메시지 출력
+					// 8-2. 메시지 출력
 					updateTextArea(msg);
 				}
 			

@@ -1,3 +1,7 @@
+/*
+ * 클라이언트에서 온 메시지를 받아서 모든 클라이언트에게 메시지를 뿌려주는 역할
+ * Thread를 상속받아서 새로운 쓰레드로 동작한다.
+ */
 package com.cafe24.network.chat.server;
 
 import java.io.BufferedReader;
@@ -47,8 +51,7 @@ public class ChatServerThread extends Thread{
 				
 				String request = br.readLine();
 				
-				System.out.println("-+---request:" + request);
-				
+				//클라이언트가 연결을 강제로 끊은 경우
 				if (request == null) {
 					ChatServer.log("클라이언트로 부터 연결 끊김");
 					doQuit(pr);
@@ -56,7 +59,8 @@ public class ChatServerThread extends Thread{
 				}
 				
 				String[] tokens = request.split(":");
-				System.out.println(tokens[0]);
+				
+				//메시지에 따라 다른 동작 실행
 				if("join".equals(tokens[0])) {
 					
 					doJoin(tokens[1], pr);
@@ -85,6 +89,7 @@ public class ChatServerThread extends Thread{
 		
 	}
 	
+	//채팅방 입장
 	private void doJoin( String nickName, Writer writer ) {
 		this.nickname = nickName;
 		
@@ -99,14 +104,15 @@ public class ChatServerThread extends Thread{
 		pr.flush();
 	}
 	
+	//채팅 메시지 전송
 	private void doMessage( String message ) {
 		
 		String data = nickname + ":" + message;
-		
 		broadcast(data);
 		
 	}
 	
+	//채팅방 나가기
 	private void doQuit(Writer writer) {
 		removeWriter(writer);
 		
@@ -114,13 +120,15 @@ public class ChatServerThread extends Thread{
 		broadcast(data);
 		
 	}
-
+	
+	//새로운 클라이언트 등록
 	private void addWriter( Writer writer ) {
 	   synchronized( listWriters ) {
 	      listWriters.add( writer );
 	   }
 	}
 	
+	//모든 클라이언트에게 메시지 보내기
 	private void broadcast( String data ) {
 		synchronized( listWriters ) {
 			
@@ -132,6 +140,7 @@ public class ChatServerThread extends Thread{
 		}
 	}
 	
+	//채팅방 나간 클라이언트 목록 제거
 	private void removeWriter(Writer writer) {
 		synchronized (listWriters) {
 			
@@ -140,7 +149,5 @@ public class ChatServerThread extends Thread{
 		}
 	}
 
-
-	
 
 }
