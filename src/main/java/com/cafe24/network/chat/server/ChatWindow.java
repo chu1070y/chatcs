@@ -124,10 +124,10 @@ public class ChatWindow {
 		
 	}
 	
-	public void receiveMsg() {
+	public void chatClientReceiveThread() {
 		
 		// 8-1.메시지 받기(데이터 수신 스레드)
-		new Thread(()->{
+		Thread thread = new Thread(()->{
 			
 			try {
 				while(true) {
@@ -149,7 +149,18 @@ public class ChatWindow {
 				e.printStackTrace();
 			}
 			
-		}).start();
+		});
+		
+		thread.start();
+		
+		try {
+			//해당 스레드가 종료될 때까지 기다린다
+			thread.join();
+			
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		
 	}
 
 }

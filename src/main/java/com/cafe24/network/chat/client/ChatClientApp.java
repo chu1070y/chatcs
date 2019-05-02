@@ -62,13 +62,7 @@ public class ChatClientApp {
 			window.show();
 			
 			// 8. 메세지 수신 스레드 생성
-			window.receiveMsg();
-			
-
-			// 9. 메인 스레드 잡아놓기
-			while(true) {
-				
-			}
+			window.chatClientReceiveThread();
 			
 		} catch( IOException e) {
 			System.out.println("error:" + e);
