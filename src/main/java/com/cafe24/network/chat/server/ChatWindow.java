@@ -34,6 +34,7 @@ public class ChatWindow {
 	
 	private BufferedReader br = null;
 	private PrintWriter pr = null;
+	private String nickname;
 
 	public ChatWindow(String name, Socket socket, PrintWriter pr) throws IOException{
 		frame = new Frame(name);
@@ -44,6 +45,7 @@ public class ChatWindow {
 		
 		this.br = new BufferedReader( new InputStreamReader(socket.getInputStream() ,"utf-8"));
 		this.pr = pr;
+		this.nickname = name;
 	}
 
 
@@ -108,6 +110,8 @@ public class ChatWindow {
 		
 		textField.setText("");
 		textField.requestFocus();
+		
+		updateTextArea(nickname + "(나):" + message);
 		
 		// 메시지 입력에 따른 다른 동작
 		// quit을 입력할 경우 서버로 메시지 전달 후 채팅종료

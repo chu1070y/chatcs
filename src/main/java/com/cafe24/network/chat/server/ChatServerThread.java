@@ -134,6 +134,11 @@ public class ChatServerThread extends Thread{
 			
 			for( Writer writer : listWriters ) {
 				PrintWriter printWriter = (PrintWriter)writer;
+				
+				if(writer == pr) {
+					continue;
+				}
+				
 				printWriter.println( data );
 				printWriter.flush();
 			}

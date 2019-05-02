@@ -42,6 +42,7 @@ public class ChatServer {
 			
 		} catch (IOException e) {
 			e.printStackTrace();
+			
 		} finally {	
 			try {
 				if(serverSocket != null && !serverSocket.isClosed()) {
