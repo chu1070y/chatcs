@@ -19,7 +19,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.SocketException;
@@ -36,14 +35,14 @@ public class ChatWindow {
 	private PrintWriter pr = null;
 	private String nickname;
 
-	public ChatWindow(String name, Socket socket, PrintWriter pr) throws IOException{
+	public ChatWindow(String name, Socket socket, PrintWriter pr, BufferedReader br) throws IOException{
 		frame = new Frame(name);
 		pannel = new Panel();
 		buttonSend = new Button("Send");
 		textField = new TextField();
 		textArea = new TextArea(30, 80);
 		
-		this.br = new BufferedReader( new InputStreamReader(socket.getInputStream() ,"utf-8"));
+		this.br = br;
 		this.pr = pr;
 		this.nickname = name;
 	}
@@ -86,6 +85,8 @@ public class ChatWindow {
 		// Frame
 		frame.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {
+				pr.println("quit");
+				pr.flush();
 				finish();
 			}
 		});
@@ -95,6 +96,7 @@ public class ChatWindow {
 	
 	// 채팅창 종료
 	private void finish() {
+		
 		//socket 정리
 		System.exit(0);
 	}

@@ -4,7 +4,9 @@
  * 자신의 닉네임을 서버로 전송한다.
  */
 package com.cafe24.network.chat.client;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.InetSocketAddress;
@@ -33,8 +35,9 @@ public class ChatClientApp {
 			//3. 소켓 연결
 			socket.connect(new InetSocketAddress(SERVER_IP, SERVER_PORT));
 			
-			//4. writer 생성
+			//4. writer/reader 생성
 			PrintWriter pr = new PrintWriter( new OutputStreamWriter(socket.getOutputStream(), "utf-8"), true );
+			BufferedReader br = new BufferedReader( new InputStreamReader(socket.getInputStream() ,"utf-8"));
 			
 			//5. join 프로토콜
 			while( true ) {
@@ -44,19 +47,29 @@ public class ChatClientApp {
 				name = scanner.nextLine();
 				
 				// 닉네임 미입력시 재요청
-				if (name.isEmpty() == false ) {
-					break;
+				if (name.isEmpty() == true ) {
+					System.out.println("닉네임은 한글자 이상 입력해야 합니다.\n");
+					continue;
 				}
 				
-				System.out.println("닉네임은 한글자 이상 입력해야 합니다.\n");
+				// 닉네임 중복 검사
+				// 서버로 닉네임 전달
+				pr.println("join:" + name);
+				pr.flush();
+				
+				//서버로부터 닉네임 중복 확인 수신
+				String sysMsg = br.readLine();
+				
+				if("check".equals(sysMsg)) {
+					break;
+				}
+				System.out.println("닉네임이 중복입니다. 다시 작성해주세요.");
+				
 			}
 			
-			// 서버로 닉네임 전달
-			pr.println("join:" + name);
-			pr.flush();
 			
 			// 6. 채팅창 객체 생성
-			ChatWindow window = new ChatWindow(name,socket,pr);
+			ChatWindow window = new ChatWindow(name,socket,pr,br);
 			
 			// 7. 채팅창 열기
 			window.show();

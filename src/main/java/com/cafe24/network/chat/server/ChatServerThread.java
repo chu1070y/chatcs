@@ -13,20 +13,21 @@ import java.io.Writer;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
-import java.util.List;
+import java.util.Map;
 
 public class ChatServerThread extends Thread{
 	
 	private Socket socket;
 	private String nickname;
-	private List<Writer> listWriters;
 	
 	private BufferedReader br = null;
 	private PrintWriter pr = null;
+	private Map<String, Writer> writerMap;
 
-	public ChatServerThread(Socket socket, List<Writer> listWriters) {
+	public ChatServerThread(Socket socket, Map<String, Writer> writerMap) {
 		this.socket = socket;
-		this.listWriters = listWriters;
+		this.writerMap = writerMap;
+		
 	}
 
 	@Override
@@ -36,8 +37,6 @@ public class ChatServerThread extends Thread{
 		InetSocketAddress inetRemoteSocketAddress = (InetSocketAddress)socket.getRemoteSocketAddress();
 		String remoteHostAddress = inetRemoteSocketAddress.getAddress().getHostAddress();
 		int remotePort = inetRemoteSocketAddress.getPort();
-		
-
 		
 		ChatServer.log("connected by client["+ remoteHostAddress + ":" + remotePort + "]");
 		
@@ -59,6 +58,19 @@ public class ChatServerThread extends Thread{
 				}
 				
 				String[] tokens = request.split(":");
+				
+				//귓속말 기능 추가
+				if(tokens.length == 3) {
+					
+					if(!writerMap.containsKey(tokens[1])) {
+						pr.println( tokens[1] + "닉네임은 없습니다.");
+						pr.flush();
+						continue;
+					}
+					
+					whisper(tokens[1], tokens[2]);
+					continue;
+				}
 				
 				//메시지에 따라 다른 동작 실행
 				if("join".equals(tokens[0])) {
@@ -93,11 +105,24 @@ public class ChatServerThread extends Thread{
 	private void doJoin( String nickName, Writer writer ) {
 		this.nickname = nickName;
 		
-		String data = nickName + "님이 참여하였습니다.";
+		if(writerMap.get(nickName) != null) {
+			pr.println("exists");
+			pr.flush();
+			return;
+		}
+		
+		//ack
+		pr.println("check");
+		pr.flush();
+		
+		String data = "--------------------------------------\r\n";
+		data += nickName + "님이 참여하였습니다.\r\n";
+		data += "귓속말 기능은 문장앞에 '상대이름:'을 붙여주세요.\r\n";
+		data += "--------------------------------------\r\n";
 		broadcast(data);
-		   
-		/* writer pool에  저장 */
-		addWriter(writer);
+		
+		/*whisperMap에 저장*/
+		writerMap.put(nickName, writer);
 		   
 		//ack
 		pr.println(data);
@@ -121,21 +146,15 @@ public class ChatServerThread extends Thread{
 		
 	}
 	
-	//새로운 클라이언트 등록
-	private void addWriter( Writer writer ) {
-	   synchronized( listWriters ) {
-	      listWriters.add( writer );
-	   }
-	}
-	
 	//모든 클라이언트에게 메시지 보내기
 	private void broadcast( String data ) {
-		synchronized( listWriters ) {
+		synchronized( writerMap ) {
 			
-			for( Writer writer : listWriters ) {
-				PrintWriter printWriter = (PrintWriter)writer;
+			for( String key : writerMap.keySet() ) {
 				
-				if(writer == pr) {
+				PrintWriter printWriter = (PrintWriter)writerMap.get(key);
+				
+				if(key == nickname) {
 					continue;
 				}
 				
@@ -145,11 +164,22 @@ public class ChatServerThread extends Thread{
 		}
 	}
 	
+	//귓속말 보내기 기능 추가
+	private void whisper(String nick,String data) {
+		
+		PrintWriter printWriter = (PrintWriter)writerMap.get(nick);
+		
+		data = nickname + "님의 귓속말:" + data;
+		
+		printWriter.println( data );
+		printWriter.flush();
+		
+	}
+	
 	//채팅방 나간 클라이언트 목록 제거
 	private void removeWriter(Writer writer) {
-		synchronized (listWriters) {
-			
-			listWriters.remove(listWriters.indexOf(writer));
+		synchronized (writerMap) {
+			writerMap.remove(nickname);
 			
 		}
 	}

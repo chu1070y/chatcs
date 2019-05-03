@@ -11,8 +11,8 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ChatServer {
 	// 포트번호
@@ -20,7 +20,7 @@ public class ChatServer {
 
 	public static void main(String[] args) {
 		ServerSocket serverSocket = null;
-		List<Writer> listWriters = new ArrayList<Writer>();
+		Map<String, Writer> writerMap = new HashMap<String, Writer>();
 		
 		try {
 			// 1. 서버소켓생성
@@ -36,7 +36,7 @@ public class ChatServer {
 			// 메시지가 들어왔을 때 뿌려주는 쓰레드는 새로 생성한다.
 			while(true) {
 				Socket socket = serverSocket.accept();
-				new ChatServerThread(socket, listWriters).start();
+				new ChatServerThread(socket, writerMap).start();
 				
 			}
 			
